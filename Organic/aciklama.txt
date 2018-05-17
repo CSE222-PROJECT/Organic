@@ -1,0 +1,40 @@
+﻿********************************************************************************
+*
+						GRUP 10 - ORGANICS									   
+*
+*																			   
+*
+********************************************************************************
+
+* 
+Kullanılan yazılım aracı: intelliJ IDEA, Version: 2018.1.2
+
+* 
+
+Import edilen kütüphaneler:
+
+	
+java.util.ArrayList;
+	
+java.io.*;
+	
+java.util.Objects;
+	
+java.util.*;
+	
+java.util.Scanner;
+
+* 
+
+Binary Tree implementasyonu için kullanılanlar :
+
+Kitaptaki (Koffman and Wolfgang) Binary Tree implementasyonu
+
+
+
+* Queue için kullanılanlar :
+Kİtaptaki (Koffman & Wolfgang)  Queue implementasyonu
+
+
+* PriorityQueue için kullanılanlar :
+Kitaptaki (Koffman and Wolfgang) PriorityQueue
