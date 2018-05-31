@@ -2,6 +2,7 @@ package Panels;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import CityGraph.*;
@@ -11,16 +12,19 @@ import Sort.*;
 import Users.*;
 import BasketWallet.*;
 
+import static Users.SuperAdmin.confirms;
+import static Users.SuperAdmin.readConfirm;
+
 public class UserPanel {
 
     /***
      * object for user
      */
-    private User currentGuest=new Guest();
+    public static User currentGuest=new Guest();
     /**
      * object for basket
      */
-    private  ArrayList<Basket> order= new ArrayList<>();
+    public static ArrayList<Basket> order = new ArrayList<>();
     /**
      * object for product
      */
@@ -42,11 +46,15 @@ public class UserPanel {
      */
     private ArrayList<String> nextFilter = new ArrayList<>();
 
-    BinarySearchTree<Clothes> costFilterClothes=new BinarySearchTree<>();
-    BinarySearchTree<Nutrient> costFilterNutrient=new BinarySearchTree<>();
-    BinarySearchTree<Cosmetics> costFilterCosmetic=new BinarySearchTree<>();
+
+
 
     CityMap kargoPath=new CityMap();
+
+    protected boolean confirm = false;
+    public static QueueList<String> confirmList = new QueueList<>();
+    public static List<Basket> orderTemp;
+    public static ArrayList<String> newconfirm = new ArrayList<>();
 
 
     public static void main(String[] args)
@@ -62,6 +70,7 @@ public class UserPanel {
 
         currentGuest=user;
         //Scanner in=new Scanner(System.in);
+        order= readBasketFromFile();
         mainPage();
     }
 
@@ -113,7 +122,9 @@ public class UserPanel {
                         status = 1;
                     if (categoryChoise == 'c')
                         status = 2;
-
+                    if(categoryChoise=='d')
+                        mainPage();
+                    filtered(readUserFilters(), status);
                     selectOption(status);
                     break;
                 case 'p':
@@ -134,6 +145,11 @@ public class UserPanel {
         }
     }
     private void sepetPage(Scanner in){
+        orderTemp = new ArrayList<>(order);
+
+        /*for (int i = 0; i<orderTemp.size(); ++i)
+           System.out.println(orderTemp.get(i));*/
+
         System.out.println("##############################");
         System.out.println("#           SEPET            #");
         System.out.println("##############################");
@@ -150,24 +166,141 @@ public class UserPanel {
         }
         switch (choice){
 
-            case 'a' :System.out.println(order.toString());
+            case 'a' :
+            case 'A' :
+
+                if (!confirm) {
+                    for (int i = 0; i < order.size(); ++i) {
+                        if (order.get(i).getUserName().equals(currentGuest.getUsername()))
+                            System.out.println(order.get(i));
+                    }
+                }
+                else {
+
+                    try {
+                        readConfirm();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    System.out.println("CC : "+confirms.size());
+                    for (int i = 0; i < confirms.size(); ++i){
+                            newconfirm.add(confirms.get(i));
+                    }
+
+                    for (int i = 0; i < newconfirm.size(); ++i) {
+                        if ( newconfirm.get(i).equals(currentGuest.getUsername())){
+                            newconfirm.set(i,null);
+                        }
+                    }
+                    ArrayList<String> str = new ArrayList<>();
+                    for (int i = 0; i < newconfirm.size(); ++i) {
+                        if (newconfirm.get(i) != null) {
+                            str.add(newconfirm.get(i));
+                        }
+                    }
+                    newconfirm.clear();
+                    for (int i = 0; i < str.size(); ++i) {
+                        newconfirm.add(str.get(i));
+
+                    }
+                    System.out.println("newwww : ");
+                    for (int i = 0; i < newconfirm.size(); ++i) {
+                        System.out.println(newconfirm.get(i));
+                    }
+
+                    ArrayList<Basket> tempBasket = new ArrayList<>();
+                    ArrayList<Integer> index = new ArrayList<>();
+                    System.out.println("confirmlist : " + confirmList.size());
+                    System.out.println("removed : "+confirmList.poll());
+                    System.out.println("confirmlist*** : " + confirmList.size());
+
+                    for (int i = 0; i < order.size(); ++i) {
+                        if (order.get(i).getUserName().equals(currentGuest.getUsername())) {
+                            tempBasket.add(order.get(i));
+                            System.out.println("i: " + i);
+                            index.add(i);
+                        }
+                    }
+                    System.out.println("Silme******");
+
+                    ArrayList<Basket> newBasket = new ArrayList<>();
+
+                    for (int j = 0; j < index.size(); ++j) {
+                        System.out.println("j: "+index.get(j));
+                        int number;
+                        number=index.get(j);
+                        System.out.println("num : " + number);
+                        order.set(number,null);
+                    }
+
+                    System.out.println("SİZE :" + index.size());
+
+                    for (int i = 0; i < order.size(); ++i) {
+                        if (order.get(i) != null) {
+                            newBasket.add(order.get(i));
+                        }
+                    }
+                    System.out.println("NEW Basket");
+                    for (int j = 0; j < newBasket.size(); ++j)
+                        System.out.println( newBasket.get(j));
+
+                    order.clear();
+                    System.out.println("SİZE :" + order.size());
+
+                    for (int i = 0; i < newBasket.size(); ++i)
+                        order.add(newBasket.get(i));
+                    System.out.println("SİZE2:" + order.size());
+
+                    System.out.println("new order :");
+                    for (int i = 0; i < order.size(); ++i)
+                        System.out.println(order.get(i));
+
+                    write();
+
+                    System.out.println("SEPETİNİZ BOŞ");
+                }
                 break;
             case 'b' :
+            case 'B' :
                 sepetOnaylamaPage(in);
 
                 break;
             case 'c' :
+            case 'C' :
                 mainPage();
                 break;
             default:
                 break;
         }
     }
+
+    private void write (){
+        try{
+            BufferedWriter writer = new BufferedWriter(new FileWriter("user_basket.csv", false));
+            BufferedWriter writer2 = new BufferedWriter(new FileWriter("confirmBasket.csv", false));
+
+            for (int i = 0; i < order.size(); i++) {
+                writer.write(order.get(i).getDataFields());
+            }
+            System.out.println("confirms = "+newconfirm.size());
+            for (int i = 0; i < newconfirm.size(); i++) {
+                writer2.write(newconfirm.get(i));
+            }
+
+            writer.close();
+            writer2.close();
+
+        }catch (IOException e){
+
+            System.out.println(e);
+        }
+    }
+
     private void sepetOnaylamaPage(Scanner in){
         System.out.println("a) Sepet'i onaylamak icin ");
         System.out.println("b) Sepet'i reddetmek icin");
         System.out.println("c) Önceki sayfa");
-
         char choice = in.next().charAt(0);
 
         while (!(choice == 'a' || choice == 'b' || choice == 'c' )){
@@ -178,6 +311,8 @@ public class UserPanel {
         switch (choice){
 
             case 'a' ://print to file;
+                    confirm = true;
+                    confirmList.add(currentGuest.getUsername());
                     WriteBasketToFile();
                     System.out.println("Sepeti Başarıyla Onayladınız.");
                 break;
@@ -193,14 +328,23 @@ public class UserPanel {
                 break;
         }
     }
+
     private void WriteBasketToFile(){
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter("user_basket.csv", false));
+            BufferedWriter writer2 = new BufferedWriter(new FileWriter("confirmBasket.csv", true));
+
             for (int i = 0; i < order.size(); i++) {
                 writer.write(order.get(i).getDataFields());
             }
 
+            for (int i = 0; i < confirmList.size(); i++) {
+                writer2.write(confirmList.get(i));
+            }
+
             writer.close();
+            writer2.close();
+
         }
         catch (IOException e)
         {
@@ -212,7 +356,6 @@ public class UserPanel {
      */
     public ArrayList<Basket> readBasketFromFile()  {
         ArrayList<Basket> tempBasket= new ArrayList<>();
-
 
         try (BufferedReader reader = new BufferedReader(
                 new FileReader("user_basket.csv"))){
@@ -227,21 +370,51 @@ public class UserPanel {
                // System.out.println("****** "+temp);
 
 
-            }}
+            }
+
+
+        }
         catch (IOException e) {
             e.printStackTrace();
         }
         return  tempBasket;
     }
     public boolean InBasket(Basket obj){
-        ArrayList<Basket> baskets= readBasketFromFile();
+        //ArrayList<Basket> baskets= readBasketFromFile();
         boolean ret =false;
-        for (int i = 0; i <baskets.size() ; i++) {
-            if(obj.equals(baskets.get(i))){
+        for (int i = 0; i <order.size() ; i++) {
+            if(obj.equals(order.get(i))){
                 ret= true;
             }
         }
         return ret;
+    }
+    public boolean IsExistProduct(Product obj, int status){
+        //ArrayList<Basket> baskets= readBasketFromFile();
+
+        if(status==0){
+            for (int i = 0; i <ClothesList.size() ; i++) {
+                if(obj.equals(ClothesList.getTheData(i))){
+                    return true;
+                }
+            }
+        }
+        else if(status==1){
+            for (int i = 0; i <CosmeticsList.size() ; i++) {
+                if(obj.equals(CosmeticsList.getTheData(i))){
+                    return true;
+                }
+            }
+        }
+        else if(status==2){
+            for (int i = 0; i <NutrientList.size() ; i++) {
+                if(obj.equals(NutrientList.getTheData(i))){
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
     /**
      * select category
@@ -380,9 +553,8 @@ public class UserPanel {
         int choise;
         char selectOption;
 
-        filtered(readUserFilters(), 0);
-
-        System.out.println("size"+ClothesList.size());
+        //filtered(readUserFilters(), 0);
+        printProduct(0);
         if(ClothesList.size() != 0){
             System.out.println("Urunu sepete eklemek icin numarasini girin : ");
 
@@ -418,9 +590,9 @@ public class UserPanel {
         Scanner in=new Scanner(System.in);
         int choise;
 
-        filtered(currentGuest.getFilter(), 1);
+        //filtered(currentGuest.getFilter(), 1);
 
-
+        printProduct(1);
         if(NutrientList.size() != 0){
             System.out.println("Urunu sepete eklemek icin numarasini girin : ");
             choise=in.nextInt();
@@ -452,7 +624,8 @@ public class UserPanel {
         Scanner in=new Scanner(System.in);
         int choise;
 
-        filtered(currentGuest.getFilter(), 2);
+        //filtered(currentGuest.getFilter(), 2);
+        printProduct(2);
         if(CosmeticsList.size() != 0){
             System.out.println("Urunu sepete eklemek icin numarasini girin : ");
 
@@ -507,8 +680,9 @@ public class UserPanel {
                 }
 
                 if (flag == 0) {
-
-                    this.ClothesList.offer(allProduct.ClothesList.get(i));
+                    if(!IsExistProduct(allProduct.ClothesList.get(i), 0)) {
+                        this.ClothesList.offer(allProduct.ClothesList.get(i));
+                    }
                 }
                 flag = 0;
             }
@@ -535,8 +709,10 @@ public class UserPanel {
                 }
 
                 if (flag == 0) {
+                    if(!IsExistProduct(allProduct.NutrientList.get(i), 1)) {
+                        this.NutrientList.offer(allProduct.NutrientList.get(i));
+                    }
 
-                    this.NutrientList.offer(allProduct.NutrientList.get(i));
                 }
                 flag = 0;
             }
@@ -561,14 +737,16 @@ public class UserPanel {
                 }
 
                 if (flag == 0) {
-
-                    this.CosmeticsList.offer(allProduct.CosmeticsList.get(i));
+                    if(!IsExistProduct(allProduct.CosmeticsList.get(i), 2)) {
+                        this.CosmeticsList.offer(allProduct.CosmeticsList.get(i));
+                    }
+                    //this.CosmeticsList.offer(allProduct.CosmeticsList.get(i));
                 }
                 flag = 0;
             }
         }
 
-        printProduct(status);
+        //printProduct(status);
     }
 
     /**
@@ -607,18 +785,24 @@ public class UserPanel {
         ArrayList<Clothes> clothes=new ArrayList<>();
         ArrayList<Nutrient> nutrient=new ArrayList<>();
         ArrayList<Cosmetics> cosmetic=new ArrayList<>();
+        BinarySearchTree<Clothes> costFilterClothes=new BinarySearchTree<>();
+        BinarySearchTree<Nutrient> costFilterNutrient=new BinarySearchTree<>();
+        BinarySearchTree<Cosmetics> costFilterCosmetic=new BinarySearchTree<>();
 
         System.out.println("Lutfen fiyat araligini giriniz");
         Scanner in = new Scanner(System.in);
         double choice =  in.nextInt();
+        System.out.println("choice "+choice);;
 
         if (status==0){
             for (int i = 0; i < ClothesList.size(); i++) {
                 costFilterClothes.add(ClothesList.getTheData(i));
             }
+
             Clothes clothesFiyat=new Clothes();
             clothesFiyat.setPrice(choice);
             clothes=costFilterClothes.getDescendingOrder(clothesFiyat);
+
             for (int i = 0 ; i < clothes.size() ; ++i){
                 System.out.println(i + ") " + clothes.get(i));
             }
@@ -985,7 +1169,6 @@ public class UserPanel {
             while ( (line = in.readLine() ) != null) {
                 String[] tokens = line.split(",");
                 String username = tokens[0];
-
                 if(username.equals(currentGuest.getUsername()))
                 {
                     for (int i = 1; i < tokens.length; i++) {

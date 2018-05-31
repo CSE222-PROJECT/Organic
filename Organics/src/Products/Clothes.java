@@ -84,4 +84,9 @@ public class Clothes extends Product implements Comparable<Clothes>{
     {
         return (Integer)Double.compare(this.getPrice(),other.getPrice());
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
 }

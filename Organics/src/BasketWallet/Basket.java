@@ -9,14 +9,11 @@ import java.util.HashMap;
 public class Basket {
 
 
-    //protected ArrayList<Product> sepet= new ArrayList<>();
-
+    protected ArrayList<Basket> basket= new ArrayList<>();
 
     protected String userName;
-    protected Product userProduct=new Product();
+    protected Product userProduct = new Product();
     protected int ProductId;
-
-
 
     /**
      * default
@@ -32,9 +29,6 @@ public class Basket {
         this.ProductId=id;
         this.userName=name;
     }
-
-
-
 
     public void setUserProduct(Product userProduct) {
         this.userProduct = userProduct;
